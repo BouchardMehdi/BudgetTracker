@@ -1,6 +1,7 @@
 using BudgetTracker.Api.Data;
 using BudgetTracker.Api.DTOs;
 using BudgetTracker.Api.Models;
+using BudgetTracker.Api.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -13,10 +14,12 @@ namespace BudgetTracker.Api.Controllers;
 public class TransactionsController : AuthenticatedControllerBase
 {
     private readonly BudgetTrackerDbContext _context;
+    private readonly RecurringTransactionService _recurringTransactionService;
 
-    public TransactionsController(BudgetTrackerDbContext context)
+    public TransactionsController(BudgetTrackerDbContext context, RecurringTransactionService recurringTransactionService)
     {
         _context = context;
+        _recurringTransactionService = recurringTransactionService;
     }
 
     [HttpGet]
@@ -28,6 +31,8 @@ public class TransactionsController : AuthenticatedControllerBase
         [FromQuery] int? categoryId = null,
         [FromQuery] string? month = null)
     {
+        await _recurringTransactionService.GenerateDueOccurrencesAsync(CurrentUserId);
+
         var safePage = Math.Max(page, 1);
         var safePageSize = Math.Clamp(pageSize, 1, 100);
 
@@ -116,6 +121,16 @@ public class TransactionsController : AuthenticatedControllerBase
         }
 
         var normalizedType = dto.Type.Trim().ToLowerInvariant();
+        var recurrenceValidation = ValidateRecurrence(dto.IsRecurring, dto.TransactionDate, dto.RecurrenceStartDate, dto.RecurrenceEndDate);
+        if (recurrenceValidation is not null)
+        {
+            return recurrenceValidation;
+        }
+
+        var recurrenceStartDate = dto.IsRecurring
+            ? (dto.RecurrenceStartDate ?? dto.TransactionDate).Date
+            : null as DateTime?;
+
         var transaction = new Transaction
         {
             Title = dto.Title.Trim(),
@@ -125,12 +140,16 @@ public class TransactionsController : AuthenticatedControllerBase
             Description = string.IsNullOrWhiteSpace(dto.Description) ? null : dto.Description.Trim(),
             CategoryId = dto.CategoryId,
             UserId = CurrentUserId,
+            IsRecurring = dto.IsRecurring,
+            RecurrenceStartDate = recurrenceStartDate,
+            RecurrenceEndDate = dto.IsRecurring ? dto.RecurrenceEndDate?.Date : null,
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow
         };
 
         _context.Transactions.Add(transaction);
         await _context.SaveChangesAsync();
+        await _recurringTransactionService.GenerateDueOccurrencesAsync(CurrentUserId);
 
         await _context.Entry(transaction).Reference(item => item.Category).LoadAsync();
 
@@ -155,15 +174,27 @@ public class TransactionsController : AuthenticatedControllerBase
             return validationError;
         }
 
+        var recurrenceValidation = ValidateRecurrence(dto.IsRecurring, dto.TransactionDate, dto.RecurrenceStartDate, dto.RecurrenceEndDate);
+        if (recurrenceValidation is not null)
+        {
+            return recurrenceValidation;
+        }
+
         transaction.Title = dto.Title.Trim();
         transaction.Amount = dto.Amount;
         transaction.Type = dto.Type.Trim().ToLowerInvariant();
         transaction.TransactionDate = dto.TransactionDate.Date;
         transaction.Description = string.IsNullOrWhiteSpace(dto.Description) ? null : dto.Description.Trim();
         transaction.CategoryId = dto.CategoryId;
+        transaction.IsRecurring = dto.IsRecurring && transaction.RecurringParentId == null;
+        transaction.RecurrenceStartDate = transaction.IsRecurring
+            ? (dto.RecurrenceStartDate ?? dto.TransactionDate).Date
+            : null;
+        transaction.RecurrenceEndDate = transaction.IsRecurring ? dto.RecurrenceEndDate?.Date : null;
         transaction.UpdatedAt = DateTime.UtcNow;
 
         await _context.SaveChangesAsync();
+        await _recurringTransactionService.GenerateDueOccurrencesAsync(CurrentUserId);
         await _context.Entry(transaction).Reference(item => item.Category).LoadAsync();
 
         return Ok(ToResponseDto(transaction));
@@ -178,6 +209,14 @@ public class TransactionsController : AuthenticatedControllerBase
         if (transaction is null)
         {
             return NotFound();
+        }
+
+        if (transaction.IsRecurring && transaction.RecurringParentId == null)
+        {
+            var children = await _context.Transactions
+                .Where(item => item.RecurringParentId == transaction.Id && item.UserId == CurrentUserId)
+                .ToListAsync();
+            _context.Transactions.RemoveRange(children);
         }
 
         _context.Transactions.Remove(transaction);
@@ -215,6 +254,26 @@ public class TransactionsController : AuthenticatedControllerBase
         return null;
     }
 
+    private ActionResult? ValidateRecurrence(
+        bool isRecurring,
+        DateTime transactionDate,
+        DateTime? recurrenceStartDate,
+        DateTime? recurrenceEndDate)
+    {
+        if (!isRecurring)
+        {
+            return null;
+        }
+
+        var startDate = (recurrenceStartDate ?? transactionDate).Date;
+        if (recurrenceEndDate.HasValue && recurrenceEndDate.Value.Date < startDate)
+        {
+            return BadRequest("Recurrence end date must be after the start date.");
+        }
+
+        return null;
+    }
+
     private static TransactionResponseDto ToResponseDto(Transaction transaction)
     {
         return new TransactionResponseDto
@@ -227,6 +286,10 @@ public class TransactionsController : AuthenticatedControllerBase
             Description = transaction.Description,
             CategoryId = transaction.CategoryId,
             CategoryName = transaction.Category?.Name ?? string.Empty,
+            IsRecurring = transaction.IsRecurring,
+            RecurrenceStartDate = transaction.RecurrenceStartDate,
+            RecurrenceEndDate = transaction.RecurrenceEndDate,
+            RecurringParentId = transaction.RecurringParentId,
             CreatedAt = transaction.CreatedAt,
             UpdatedAt = transaction.UpdatedAt
         };

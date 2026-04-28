@@ -1,6 +1,7 @@
 using BudgetTracker.Api.Data;
 using BudgetTracker.Api.DTOs;
 using BudgetTracker.Api.Models;
+using BudgetTracker.Api.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -13,10 +14,12 @@ namespace BudgetTracker.Api.Controllers;
 public class BudgetsController : AuthenticatedControllerBase
 {
     private readonly BudgetTrackerDbContext _context;
+    private readonly RecurringTransactionService _recurringTransactionService;
 
-    public BudgetsController(BudgetTrackerDbContext context)
+    public BudgetsController(BudgetTrackerDbContext context, RecurringTransactionService recurringTransactionService)
     {
         _context = context;
+        _recurringTransactionService = recurringTransactionService;
     }
 
     [HttpGet]
@@ -113,6 +116,8 @@ public class BudgetsController : AuthenticatedControllerBase
     [HttpGet("progress")]
     public async Task<ActionResult<IEnumerable<BudgetProgressDto>>> GetBudgetProgress([FromQuery] string? period = "current-month")
     {
+        await _recurringTransactionService.GenerateDueOccurrencesAsync(CurrentUserId);
+
         if (!IsValidPeriod(period))
         {
             return BadRequest("Period must be one of: current-month, previous-month, current-year.");

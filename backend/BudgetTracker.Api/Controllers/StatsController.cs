@@ -1,6 +1,7 @@
 using BudgetTracker.Api.Data;
 using BudgetTracker.Api.DTOs;
 using BudgetTracker.Api.Models;
+using BudgetTracker.Api.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -13,15 +14,19 @@ namespace BudgetTracker.Api.Controllers;
 public class StatsController : AuthenticatedControllerBase
 {
     private readonly BudgetTrackerDbContext _context;
+    private readonly RecurringTransactionService _recurringTransactionService;
 
-    public StatsController(BudgetTrackerDbContext context)
+    public StatsController(BudgetTrackerDbContext context, RecurringTransactionService recurringTransactionService)
     {
         _context = context;
+        _recurringTransactionService = recurringTransactionService;
     }
 
     [HttpGet("summary")]
     public async Task<ActionResult<SummaryDto>> GetSummary([FromQuery] string? period = null)
     {
+        await _recurringTransactionService.GenerateDueOccurrencesAsync(CurrentUserId);
+
         if (!IsValidPeriod(period))
         {
             return BadRequest("Period must be one of: all, current-month, previous-month, current-year.");
@@ -50,6 +55,8 @@ public class StatsController : AuthenticatedControllerBase
         [FromQuery] string? period = null,
         [FromQuery] string? type = null)
     {
+        await _recurringTransactionService.GenerateDueOccurrencesAsync(CurrentUserId);
+
         if (!IsValidPeriod(period))
         {
             return BadRequest("Period must be one of: all, current-month, previous-month, current-year.");
@@ -93,6 +100,8 @@ public class StatsController : AuthenticatedControllerBase
     [HttpGet("latest-transactions")]
     public async Task<ActionResult<IEnumerable<TransactionResponseDto>>> GetLatestTransactions([FromQuery] int limit = 5)
     {
+        await _recurringTransactionService.GenerateDueOccurrencesAsync(CurrentUserId);
+
         var safeLimit = Math.Clamp(limit, 1, 20);
 
         var transactions = await GetUserTransactions()
@@ -110,6 +119,10 @@ public class StatsController : AuthenticatedControllerBase
                 Description = transaction.Description,
                 CategoryId = transaction.CategoryId,
                 CategoryName = transaction.Category!.Name,
+                IsRecurring = transaction.IsRecurring,
+                RecurrenceStartDate = transaction.RecurrenceStartDate,
+                RecurrenceEndDate = transaction.RecurrenceEndDate,
+                RecurringParentId = transaction.RecurringParentId,
                 CreatedAt = transaction.CreatedAt,
                 UpdatedAt = transaction.UpdatedAt
             })

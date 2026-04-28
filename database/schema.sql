@@ -26,18 +26,24 @@ CREATE TABLE IF NOT EXISTS transactions (
     description VARCHAR(1000),
     category_id INTEGER NOT NULL,
     user_id INTEGER NOT NULL,
+    is_recurring BOOLEAN NOT NULL DEFAULT FALSE,
+    recurrence_start_date DATE,
+    recurrence_end_date DATE,
+    recurring_parent_id INTEGER,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     CONSTRAINT ck_transactions_amount CHECK (amount > 0),
     CONSTRAINT ck_transactions_type CHECK (type IN ('income', 'expense')),
     CONSTRAINT fk_transactions_category FOREIGN KEY (category_id) REFERENCES categories(id) ON DELETE RESTRICT,
-    CONSTRAINT fk_transactions_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+    CONSTRAINT fk_transactions_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    CONSTRAINT fk_transactions_recurring_parent FOREIGN KEY (recurring_parent_id) REFERENCES transactions(id) ON DELETE CASCADE
 );
 
 CREATE INDEX IF NOT EXISTS ix_categories_user_id ON categories(user_id);
 CREATE INDEX IF NOT EXISTS ix_transactions_user_id ON transactions(user_id);
 CREATE INDEX IF NOT EXISTS ix_transactions_category_id ON transactions(category_id);
 CREATE INDEX IF NOT EXISTS ix_transactions_transaction_date ON transactions(transaction_date);
+CREATE UNIQUE INDEX IF NOT EXISTS ix_transactions_recurring_parent_date ON transactions(recurring_parent_id, transaction_date);
 
 CREATE TABLE IF NOT EXISTS budgets (
     id SERIAL PRIMARY KEY,

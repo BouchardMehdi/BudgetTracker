@@ -596,6 +596,18 @@ label {
   font-weight: 750;
 }
 
+.checkbox-label {
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  width: fit-content;
+}
+
+.checkbox-label input {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--primary);
+}
+
 .field-error {
   color: var(--expense);
   font-size: 0.82rem;
@@ -671,6 +683,16 @@ textarea {
 .transactions-table td:first-child {
   display: grid;
   gap: 4px;
+}
+
+.mini-badge {
+  width: fit-content;
+  padding: 3px 8px;
+  border-radius: 999px;
+  background: #eef4f8;
+  color: var(--primary-dark);
+  font-size: 0.76rem;
+  font-weight: 850;
 }
 
 .row-actions {

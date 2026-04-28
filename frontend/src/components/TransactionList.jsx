@@ -30,6 +30,11 @@ export default function TransactionList({ transactions, onDelete }) {
               <td>
                 <strong>{transaction.title}</strong>
                 {transaction.description && <span>{transaction.description}</span>}
+                {(transaction.isRecurring || transaction.recurringParentId) && (
+                  <span className="mini-badge">
+                    {transaction.recurringParentId ? 'Auto mensuel' : 'Mensuel'}
+                  </span>
+                )}
               </td>
               <td>{transaction.categoryName}</td>
               <td>{dateFormatter.format(new Date(transaction.transactionDate))}</td>

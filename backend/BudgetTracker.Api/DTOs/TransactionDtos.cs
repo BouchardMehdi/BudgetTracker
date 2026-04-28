@@ -22,6 +22,12 @@ public class TransactionCreateDto
 
     [Range(1, int.MaxValue, ErrorMessage = "CategoryId is required.")]
     public int CategoryId { get; set; }
+
+    public bool IsRecurring { get; set; }
+
+    public DateTime? RecurrenceStartDate { get; set; }
+
+    public DateTime? RecurrenceEndDate { get; set; }
 }
 
 public class TransactionUpdateDto
@@ -44,6 +50,12 @@ public class TransactionUpdateDto
 
     [Range(1, int.MaxValue, ErrorMessage = "CategoryId is required.")]
     public int CategoryId { get; set; }
+
+    public bool IsRecurring { get; set; }
+
+    public DateTime? RecurrenceStartDate { get; set; }
+
+    public DateTime? RecurrenceEndDate { get; set; }
 }
 
 public class TransactionResponseDto
@@ -56,6 +68,10 @@ public class TransactionResponseDto
     public string? Description { get; set; }
     public int CategoryId { get; set; }
     public string CategoryName { get; set; } = string.Empty;
+    public bool IsRecurring { get; set; }
+    public DateTime? RecurrenceStartDate { get; set; }
+    public DateTime? RecurrenceEndDate { get; set; }
+    public int? RecurringParentId { get; set; }
     public DateTime CreatedAt { get; set; }
     public DateTime UpdatedAt { get; set; }
 }

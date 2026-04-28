@@ -81,6 +81,10 @@ public class BudgetTrackerDbContext : DbContext
             entity.Property(transaction => transaction.Description).HasColumnName("description").HasMaxLength(1000);
             entity.Property(transaction => transaction.CategoryId).HasColumnName("category_id");
             entity.Property(transaction => transaction.UserId).HasColumnName("user_id");
+            entity.Property(transaction => transaction.IsRecurring).HasColumnName("is_recurring");
+            entity.Property(transaction => transaction.RecurrenceStartDate).HasColumnName("recurrence_start_date").HasColumnType("date");
+            entity.Property(transaction => transaction.RecurrenceEndDate).HasColumnName("recurrence_end_date").HasColumnType("date");
+            entity.Property(transaction => transaction.RecurringParentId).HasColumnName("recurring_parent_id");
             entity.Property(transaction => transaction.CreatedAt).HasColumnName("created_at");
             entity.Property(transaction => transaction.UpdatedAt).HasColumnName("updated_at");
 
@@ -94,7 +98,13 @@ public class BudgetTrackerDbContext : DbContext
                 .HasForeignKey(transaction => transaction.CategoryId)
                 .OnDelete(DeleteBehavior.Restrict);
 
+            entity.HasOne(transaction => transaction.RecurringParent)
+                .WithMany(transaction => transaction.RecurringChildren)
+                .HasForeignKey(transaction => transaction.RecurringParentId)
+                .OnDelete(DeleteBehavior.Cascade);
+
             entity.HasIndex(transaction => transaction.TransactionDate);
+            entity.HasIndex(transaction => new { transaction.RecurringParentId, transaction.TransactionDate }).IsUnique();
         });
 
         modelBuilder.Entity<Budget>(entity =>

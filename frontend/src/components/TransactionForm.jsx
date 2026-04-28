@@ -9,6 +9,9 @@ const initialForm = {
   transactionDate: new Date().toISOString().slice(0, 10),
   description: '',
   categoryId: '',
+  isRecurring: false,
+  recurrenceStartDate: '',
+  recurrenceEndDate: '',
 };
 
 function formatInitialValues(values) {
@@ -23,6 +26,9 @@ function formatInitialValues(values) {
     transactionDate: values.transactionDate?.slice(0, 10) || initialForm.transactionDate,
     description: values.description || '',
     categoryId: values.categoryId?.toString() || '',
+    isRecurring: Boolean(values.isRecurring),
+    recurrenceStartDate: values.recurrenceStartDate?.slice(0, 10) || values.transactionDate?.slice(0, 10) || '',
+    recurrenceEndDate: values.recurrenceEndDate?.slice(0, 10) || '',
   };
 }
 
@@ -50,11 +56,17 @@ export default function TransactionForm({
   );
 
   function updateField(event) {
-    const { name, value } = event.target;
+    const { name, value, type, checked } = event.target;
     setFieldErrors((current) => ({ ...current, [name]: '' }));
     setForm((current) => ({
       ...current,
-      [name]: value,
+      [name]: type === 'checkbox' ? checked : value,
+      ...(name === 'transactionDate' && current.isRecurring && !current.recurrenceStartDate
+        ? { recurrenceStartDate: value }
+        : {}),
+      ...(name === 'isRecurring' && checked && !current.recurrenceStartDate
+        ? { recurrenceStartDate: current.transactionDate }
+        : {}),
       ...(name === 'type' ? { categoryId: '' } : {}),
     }));
   }
@@ -81,6 +93,13 @@ export default function TransactionForm({
       validationErrors.categoryId = 'Choisis une categorie.';
     }
 
+    if (form.isRecurring) {
+      const startDate = form.recurrenceStartDate || form.transactionDate;
+      if (form.recurrenceEndDate && form.recurrenceEndDate < startDate) {
+        validationErrors.recurrenceEndDate = 'La date de fin doit etre apres la date de debut.';
+      }
+    }
+
     setFieldErrors(validationErrors);
 
     if (Object.keys(validationErrors).length > 0) {
@@ -95,6 +114,9 @@ export default function TransactionForm({
         transactionDate: form.transactionDate,
         description: form.description.trim(),
         categoryId: Number(form.categoryId),
+        isRecurring: form.isRecurring,
+        recurrenceStartDate: form.isRecurring ? form.recurrenceStartDate || form.transactionDate : null,
+        recurrenceEndDate: form.isRecurring && form.recurrenceEndDate ? form.recurrenceEndDate : null,
       });
 
       if (resetOnSuccess) {
@@ -153,6 +175,41 @@ export default function TransactionForm({
           Description
           <textarea name="description" value={form.description} onChange={updateField} rows="4" />
         </label>
+
+        <label className="checkbox-label full-width">
+          <input
+            name="isRecurring"
+            type="checkbox"
+            checked={form.isRecurring}
+            onChange={updateField}
+          />
+          Repeter chaque mois
+        </label>
+
+        {form.isRecurring && (
+          <>
+            <label>
+              Date de debut
+              <input
+                name="recurrenceStartDate"
+                type="date"
+                value={form.recurrenceStartDate || form.transactionDate}
+                onChange={updateField}
+              />
+            </label>
+
+            <label>
+              Date de fin
+              <input
+                name="recurrenceEndDate"
+                type="date"
+                value={form.recurrenceEndDate}
+                onChange={updateField}
+              />
+              {fieldErrors.recurrenceEndDate && <span className="field-error">{fieldErrors.recurrenceEndDate}</span>}
+            </label>
+          </>
+        )}
       </div>
 
       <button className="primary-button" type="submit" disabled={isSubmitting}>

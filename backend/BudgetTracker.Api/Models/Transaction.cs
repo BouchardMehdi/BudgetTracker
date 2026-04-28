@@ -10,9 +10,15 @@ public class Transaction
     public string? Description { get; set; }
     public int CategoryId { get; set; }
     public int UserId { get; set; }
+    public bool IsRecurring { get; set; }
+    public DateTime? RecurrenceStartDate { get; set; }
+    public DateTime? RecurrenceEndDate { get; set; }
+    public int? RecurringParentId { get; set; }
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 
     public Category? Category { get; set; }
     public User? User { get; set; }
+    public Transaction? RecurringParent { get; set; }
+    public ICollection<Transaction> RecurringChildren { get; set; } = new List<Transaction>();
 }

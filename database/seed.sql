@@ -139,4 +139,33 @@ BEGIN
         ('Salaire decembre', 2800.00, 'income', '2025-12-01', 'Ancienne periode', salaire_id, demo_user_id, NOW(), NOW()),
         ('Cadeaux Noel', 310.00, 'expense', '2025-12-18', 'Cadeaux famille', shopping_id, demo_user_id, NOW(), NOW()),
         ('Train Noel', 130.00, 'expense', '2025-12-22', 'Retour famille', transport_id, demo_user_id, NOW(), NOW());
+
+    INSERT INTO transactions (
+        title,
+        amount,
+        type,
+        transaction_date,
+        description,
+        category_id,
+        user_id,
+        is_recurring,
+        recurrence_start_date,
+        recurrence_end_date,
+        created_at,
+        updated_at
+    )
+    VALUES (
+        'Assurance habitation',
+        18.90,
+        'expense',
+        '2026-01-15',
+        'Prelevement mensuel automatique',
+        abonnements_id,
+        demo_user_id,
+        TRUE,
+        '2026-01-15',
+        NULL,
+        NOW(),
+        NOW()
+    );
 END $$;
