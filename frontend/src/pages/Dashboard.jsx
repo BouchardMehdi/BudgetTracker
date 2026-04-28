@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { statsApi } from '../api/statsApi';
 import StatCard from '../components/StatCard';
+import { getApiErrorMessage } from '../utils/apiError';
 
 const currencyFormatter = new Intl.NumberFormat('fr-FR', {
   style: 'currency',
@@ -11,6 +12,7 @@ export default function Dashboard() {
   const [summary, setSummary] = useState({ totalIncome: 0, totalExpense: 0, balance: 0 });
   const [byCategory, setByCategory] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState('');
 
   useEffect(() => {
     async function loadStats() {
@@ -21,6 +23,8 @@ export default function Dashboard() {
         ]);
         setSummary(summaryData);
         setByCategory(categoryData);
+      } catch (loadError) {
+        setError(getApiErrorMessage(loadError));
       } finally {
         setIsLoading(false);
       }
@@ -43,6 +47,8 @@ export default function Dashboard() {
         <StatCard title="Depenses" value={currencyFormatter.format(summary.totalExpense)} tone="expense" />
         <StatCard title="Solde" value={currencyFormatter.format(summary.balance)} tone={summary.balance >= 0 ? 'income' : 'expense'} />
       </div>
+
+      {error && <div className="alert error">{error}</div>}
 
       <section className="section-block">
         <div className="section-title">

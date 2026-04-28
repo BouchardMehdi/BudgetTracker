@@ -2,11 +2,13 @@ import { UserPlus } from 'lucide-react';
 import { useState } from 'react';
 import { Link, Navigate, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { getApiErrorMessage } from '../utils/apiError';
 
 export default function Register() {
   const { isAuthenticated, register } = useAuth();
   const [form, setForm] = useState({ username: '', email: '', password: '' });
   const [error, setError] = useState('');
+  const [fieldErrors, setFieldErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const navigate = useNavigate();
 
@@ -16,6 +18,7 @@ export default function Register() {
 
   function updateField(event) {
     const { name, value } = event.target;
+    setFieldErrors((current) => ({ ...current, [name]: '' }));
     setForm((current) => ({ ...current, [name]: value }));
   }
 
@@ -23,8 +26,19 @@ export default function Register() {
     event.preventDefault();
     setError('');
 
+    const validationErrors = {};
+    if (!form.username.trim()) {
+      validationErrors.username = 'Le username est obligatoire.';
+    }
+    if (!form.email.trim()) {
+      validationErrors.email = "L'email est obligatoire.";
+    }
     if (form.password.length < 8) {
-      setError('Le mot de passe doit contenir au moins 8 caracteres.');
+      validationErrors.password = 'Le mot de passe doit contenir au moins 8 caracteres.';
+    }
+
+    setFieldErrors(validationErrors);
+    if (Object.keys(validationErrors).length > 0) {
       return;
     }
 
@@ -34,7 +48,7 @@ export default function Register() {
       await register(form.username, form.email, form.password);
       navigate('/');
     } catch (err) {
-      setError(err.response?.data || 'Impossible de creer le compte.');
+      setError(getApiErrorMessage(err));
     } finally {
       setIsSubmitting(false);
     }
@@ -53,16 +67,19 @@ export default function Register() {
         <label>
           Username
           <input name="username" value={form.username} onChange={updateField} autoComplete="username" />
+          {fieldErrors.username && <span className="field-error">{fieldErrors.username}</span>}
         </label>
 
         <label>
           Email
           <input name="email" type="email" value={form.email} onChange={updateField} autoComplete="email" />
+          {fieldErrors.email && <span className="field-error">{fieldErrors.email}</span>}
         </label>
 
         <label>
           Mot de passe
           <input name="password" type="password" value={form.password} onChange={updateField} autoComplete="new-password" />
+          {fieldErrors.password && <span className="field-error">{fieldErrors.password}</span>}
         </label>
 
         <button className="primary-button" type="submit" disabled={isSubmitting}>

@@ -1,4 +1,5 @@
-import { Trash2 } from 'lucide-react';
+import { Pencil, Trash2 } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 const currencyFormatter = new Intl.NumberFormat('fr-FR', {
   style: 'currency',
@@ -43,15 +44,25 @@ export default function TransactionList({ transactions, onDelete }) {
                 {currencyFormatter.format(transaction.amount)}
               </td>
               <td>
-                <button
-                  className="icon-button danger"
-                  type="button"
-                  onClick={() => onDelete(transaction.id)}
-                  title="Supprimer"
-                  aria-label={`Supprimer ${transaction.title}`}
-                >
-                  <Trash2 size={18} aria-hidden="true" />
-                </button>
+                <div className="row-actions">
+                  <Link
+                    className="icon-button"
+                    to={`/transactions/${transaction.id}/edit`}
+                    title="Modifier"
+                    aria-label={`Modifier ${transaction.title}`}
+                  >
+                    <Pencil size={18} aria-hidden="true" />
+                  </Link>
+                  <button
+                    className="icon-button danger"
+                    type="button"
+                    onClick={() => onDelete(transaction)}
+                    title="Supprimer"
+                    aria-label={`Supprimer ${transaction.title}`}
+                  >
+                    <Trash2 size={18} aria-hidden="true" />
+                  </button>
+                </div>
               </td>
             </tr>
           ))}

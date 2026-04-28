@@ -1,15 +1,21 @@
 import { Plus, Trash2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { categoriesApi } from '../api/categoriesApi';
+import { getApiErrorMessage } from '../utils/apiError';
 
 export default function Categories() {
   const [categories, setCategories] = useState([]);
   const [form, setForm] = useState({ name: '', type: 'expense' });
   const [error, setError] = useState('');
+  const [fieldErrors, setFieldErrors] = useState({});
 
   async function loadCategories() {
-    const data = await categoriesApi.getAll();
-    setCategories(data);
+    try {
+      const data = await categoriesApi.getAll();
+      setCategories(data);
+    } catch (loadError) {
+      setError(getApiErrorMessage(loadError));
+    }
   }
 
   useEffect(() => {
@@ -18,6 +24,7 @@ export default function Categories() {
 
   function updateField(event) {
     const { name, value } = event.target;
+    setFieldErrors((current) => ({ ...current, [name]: '' }));
     setForm((current) => ({ ...current, [name]: value }));
   }
 
@@ -26,22 +33,32 @@ export default function Categories() {
     setError('');
 
     if (!form.name.trim()) {
-      setError('Le nom est obligatoire.');
+      setFieldErrors({ name: 'Le nom est obligatoire.' });
       return;
     }
 
-    const created = await categoriesApi.create({ name: form.name.trim(), type: form.type });
-    setCategories((current) => [...current, created].sort((a, b) => a.name.localeCompare(b.name)));
-    setForm({ name: '', type: 'expense' });
+    try {
+      const created = await categoriesApi.create({ name: form.name.trim(), type: form.type });
+      setCategories((current) => [...current, created].sort((a, b) => a.name.localeCompare(b.name)));
+      setForm({ name: '', type: 'expense' });
+      setFieldErrors({});
+    } catch (createError) {
+      setError(getApiErrorMessage(createError));
+    }
   }
 
-  async function deleteCategory(id) {
+  async function deleteCategory(category) {
+    const confirmed = window.confirm(`Supprimer la categorie "${category.name}" ?`);
+    if (!confirmed) {
+      return;
+    }
+
     setError('');
     try {
-      await categoriesApi.remove(id);
-      setCategories((current) => current.filter((category) => category.id !== id));
+      await categoriesApi.remove(category.id);
+      setCategories((current) => current.filter((item) => item.id !== category.id));
     } catch (err) {
-      setError(err.response?.data || 'Impossible de supprimer cette categorie.');
+      setError(getApiErrorMessage(err));
     }
   }
 
@@ -55,7 +72,11 @@ export default function Categories() {
       </div>
 
       <form className="inline-form" onSubmit={createCategory}>
-        <input name="name" value={form.name} onChange={updateField} placeholder="Nom de categorie" />
+        <label>
+          Nom
+          <input name="name" value={form.name} onChange={updateField} placeholder="Nom de categorie" />
+          {fieldErrors.name && <span className="field-error">{fieldErrors.name}</span>}
+        </label>
         <select name="type" value={form.type} onChange={updateField}>
           <option value="expense">Depense</option>
           <option value="income">Revenu</option>
@@ -78,7 +99,7 @@ export default function Categories() {
             <button
               className="icon-button danger"
               type="button"
-              onClick={() => deleteCategory(category.id)}
+              onClick={() => deleteCategory(category)}
               title="Supprimer"
               aria-label={`Supprimer ${category.name}`}
             >

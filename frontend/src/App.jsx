@@ -4,6 +4,7 @@ import ProtectedRoute from './components/ProtectedRoute.jsx';
 import AddTransaction from './pages/AddTransaction.jsx';
 import Categories from './pages/Categories.jsx';
 import Dashboard from './pages/Dashboard.jsx';
+import EditTransaction from './pages/EditTransaction.jsx';
 import Login from './pages/Login.jsx';
 import Register from './pages/Register.jsx';
 import Transactions from './pages/Transactions.jsx';
@@ -20,6 +21,7 @@ export default function App() {
             <Route path="/" element={<Dashboard />} />
             <Route path="/transactions" element={<Transactions />} />
             <Route path="/transactions/add" element={<AddTransaction />} />
+            <Route path="/transactions/:id/edit" element={<EditTransaction />} />
             <Route path="/categories" element={<Categories />} />
           </Route>
           <Route path="*" element={<Navigate to="/" replace />} />
