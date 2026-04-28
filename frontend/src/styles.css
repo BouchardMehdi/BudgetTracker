@@ -59,10 +59,15 @@ a {
 .brand,
 .nav-link,
 .primary-button,
-.icon-button {
+.icon-button,
+.menu-toggle {
   display: inline-flex;
   align-items: center;
   justify-content: center;
+}
+
+.navbar-top {
+  display: contents;
 }
 
 .brand {
@@ -78,9 +83,31 @@ a {
   display: grid;
   place-items: center;
   border-radius: 8px;
-  background: #202124;
-  color: #ffffff;
-  font-size: 0.85rem;
+  overflow: hidden;
+  background: #ffffff;
+}
+
+.brand-mark img {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: contain;
+}
+
+.menu-toggle {
+  display: none;
+  width: 42px;
+  height: 42px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: #ffffff;
+  color: #202124;
+  cursor: pointer;
+}
+
+.menu-toggle:hover {
+  background: #eef4f8;
+  color: var(--primary-dark);
 }
 
 .nav-links {
@@ -780,35 +807,85 @@ textarea {
 }
 
 @media (max-width: 760px) {
-  .navbar,
   .page-header {
     align-items: flex-start;
     flex-direction: column;
   }
 
   .navbar {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0;
+    padding: 12px clamp(12px, 4vw, 18px);
+  }
+
+  .navbar-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
     gap: 14px;
+    width: 100%;
+  }
+
+  .menu-toggle {
+    display: inline-flex;
+    flex: 0 0 auto;
+    box-shadow: 0 8px 18px rgba(17, 24, 39, 0.05);
   }
 
   .brand span:last-child {
     overflow: hidden;
     text-overflow: ellipsis;
+    white-space: nowrap;
   }
 
   .nav-links {
     width: 100%;
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    display: none;
+    align-items: stretch;
+    gap: 6px;
+    margin-top: 12px;
+    padding: 12px;
+    border-top: 1px solid var(--border);
+    border-radius: 8px;
+    background: #ffffff;
+    box-shadow: 0 12px 28px rgba(17, 24, 39, 0.06);
+  }
+
+  .nav-links.is-open {
+    display: flex;
+    flex-direction: column;
   }
 
   .nav-link {
     width: 100%;
     min-width: 0;
+    justify-content: flex-start;
+    padding: 12px;
+    border: 1px solid transparent;
+    background: #ffffff;
+  }
+
+  .nav-link.active {
+    border-color: #d7e6f1;
   }
 
   .user-chip,
   .currency-select {
     width: 100%;
+  }
+
+  .currency-select {
+    min-height: 44px;
+  }
+
+  .user-chip {
+    justify-content: flex-start;
+    min-height: 44px;
+  }
+
+  .nav-button {
+    margin-top: 4px;
   }
 
   .form-grid,
@@ -949,10 +1026,6 @@ textarea {
 @media (max-width: 480px) {
   .navbar {
     padding: 14px 12px;
-  }
-
-  .nav-links {
-    grid-template-columns: 1fr;
   }
 
   .auth-panel,
