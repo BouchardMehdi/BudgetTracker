@@ -103,6 +103,25 @@ npm run dev
 
 Le frontend est disponible sur `http://localhost:5173`.
 
+## Docker et production
+
+Le projet contient une configuration Docker pour un deploiement sur VPS avec Nginx en reverse proxy :
+
+- [docker-compose.yml](docker-compose.yml)
+- [backend/BudgetTracker.Api/Dockerfile](backend/BudgetTracker.Api/Dockerfile)
+- [frontend/Dockerfile](frontend/Dockerfile)
+- [docs/deployment-vps-docker.md](docs/deployment-vps-docker.md)
+- [docs/nginx/budgettracker.conf.example](docs/nginx/budgettracker.conf.example)
+
+Demarrage local/prod avec Docker :
+
+```bash
+cp .env.example .env
+docker compose up -d --build
+```
+
+La configuration expose le frontend et l'API uniquement sur `127.0.0.1`, afin que Nginx gere l'acces public, les sous-domaines et HTTPS.
+
 ## Notes MVP
 
 - L'authentification JWT est active.
