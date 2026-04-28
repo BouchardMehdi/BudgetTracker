@@ -123,6 +123,13 @@ a {
   font-weight: 800;
 }
 
+.currency-select {
+  width: 86px;
+  min-height: 38px;
+  padding: 7px 9px;
+  font-weight: 800;
+}
+
 .main-content {
   width: min(1120px, calc(100% - 32px));
   margin: 0 auto;
@@ -360,6 +367,88 @@ h2 {
   height: 100%;
   border-radius: inherit;
   background: var(--expense);
+}
+
+.budget-form {
+  display: grid;
+  grid-template-columns: minmax(180px, 1fr) minmax(160px, 220px) auto;
+  gap: 12px;
+  align-items: end;
+  margin-bottom: 16px;
+}
+
+.budget-grid {
+  display: grid;
+  gap: 14px;
+}
+
+.budget-row {
+  display: grid;
+  gap: 8px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.budget-row:last-child {
+  border-bottom: 0;
+}
+
+.budget-track span {
+  background: var(--income);
+}
+
+.budget-track.over span {
+  background: var(--expense);
+}
+
+.budget-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.budget-meta span {
+  color: var(--muted);
+  font-size: 0.9rem;
+  font-weight: 750;
+}
+
+.pagination-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 14px 16px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: #ffffff;
+}
+
+.pagination-bar > span {
+  color: var(--muted);
+  font-weight: 750;
+}
+
+.pagination-bar label {
+  grid-auto-flow: column;
+  align-items: center;
+  color: var(--muted);
+}
+
+.pagination-bar select {
+  width: 82px;
+}
+
+.pagination-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.icon-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
 }
 
 .category-stat-row,
@@ -642,6 +731,12 @@ textarea {
   background: var(--expense-soft);
 }
 
+.alert.success {
+  border-color: #a5d9c0;
+  color: var(--income);
+  background: var(--income-soft);
+}
+
 @media (max-width: 760px) {
   .navbar,
   .page-header {
@@ -661,8 +756,15 @@ textarea {
   .dashboard-grid,
   .form-grid,
   .filters-panel,
+  .budget-form,
   .inline-form {
     grid-template-columns: 1fr;
+  }
+
+  .pagination-bar,
+  .budget-meta {
+    align-items: flex-start;
+    flex-direction: column;
   }
 
   .main-content {

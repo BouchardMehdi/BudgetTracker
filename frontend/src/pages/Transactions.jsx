@@ -1,4 +1,4 @@
-import { Plus, RotateCcw } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Plus, RotateCcw } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { categoriesApi } from '../api/categoriesApi';
@@ -6,44 +6,53 @@ import { transactionsApi } from '../api/transactionsApi';
 import TransactionList from '../components/TransactionList';
 import { getApiErrorMessage } from '../utils/apiError';
 
+const initialFilters = { search: '', type: '', categoryId: '', month: '' };
+
+function buildMonthOptions() {
+  const options = [];
+  const today = new Date();
+
+  for (let index = 0; index < 18; index += 1) {
+    const date = new Date(today.getFullYear(), today.getMonth() - index, 1);
+    const value = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+    options.push(value);
+  }
+
+  return options;
+}
+
 export default function Transactions() {
   const [transactions, setTransactions] = useState([]);
   const [categories, setCategories] = useState([]);
-  const [filters, setFilters] = useState({ search: '', type: 'all', categoryId: 'all', month: '' });
+  const [filters, setFilters] = useState(initialFilters);
+  const [pagination, setPagination] = useState({ page: 1, pageSize: 10, totalItems: 0, totalPages: 0 });
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
 
-  const monthOptions = useMemo(() => {
-    const months = new Set(transactions.map((transaction) => transaction.transactionDate.slice(0, 7)));
-    return Array.from(months).sort().reverse();
-  }, [transactions]);
+  const monthOptions = useMemo(() => buildMonthOptions(), []);
 
-  const filteredTransactions = useMemo(() => {
-    const search = filters.search.trim().toLowerCase();
-
-    return transactions.filter((transaction) => {
-      const matchesSearch =
-        !search ||
-        transaction.title.toLowerCase().includes(search) ||
-        transaction.description?.toLowerCase().includes(search);
-      const matchesType = filters.type === 'all' || transaction.type === filters.type;
-      const matchesCategory = filters.categoryId === 'all' || transaction.categoryId === Number(filters.categoryId);
-      const matchesMonth = !filters.month || transaction.transactionDate.slice(0, 7) === filters.month;
-
-      return matchesSearch && matchesType && matchesCategory && matchesMonth;
-    });
-  }, [filters, transactions]);
-
-  async function loadTransactions() {
+  async function loadTransactions(nextPage = pagination.page) {
     setIsLoading(true);
     setError('');
+
     try {
-      const [transactionData, categoryData] = await Promise.all([
-        transactionsApi.getAll(),
-        categoriesApi.getAll(),
-      ]);
-      setTransactions(transactionData);
-      setCategories(categoryData);
+      const params = {
+        page: nextPage,
+        pageSize: pagination.pageSize,
+        search: filters.search || undefined,
+        type: filters.type || undefined,
+        categoryId: filters.categoryId || undefined,
+        month: filters.month || undefined,
+      };
+
+      const data = await transactionsApi.getAll(params);
+      setTransactions(data.items);
+      setPagination({
+        page: data.page,
+        pageSize: data.pageSize,
+        totalItems: data.totalItems,
+        totalPages: data.totalPages,
+      });
     } catch (loadError) {
       setError(getApiErrorMessage(loadError));
     } finally {
@@ -51,13 +60,35 @@ export default function Transactions() {
     }
   }
 
+  useEffect(() => {
+    async function loadCategories() {
+      try {
+        const categoryData = await categoriesApi.getAll();
+        setCategories(categoryData);
+      } catch (loadError) {
+        setError(getApiErrorMessage(loadError));
+      }
+    }
+
+    loadCategories();
+  }, []);
+
+  useEffect(() => {
+    loadTransactions(1);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filters, pagination.pageSize]);
+
   function updateFilter(event) {
     const { name, value } = event.target;
     setFilters((current) => ({ ...current, [name]: value }));
   }
 
+  function updatePageSize(event) {
+    setPagination((current) => ({ ...current, pageSize: Number(event.target.value), page: 1 }));
+  }
+
   function resetFilters() {
-    setFilters({ search: '', type: 'all', categoryId: 'all', month: '' });
+    setFilters(initialFilters);
   }
 
   async function deleteTransaction(transaction) {
@@ -70,15 +101,11 @@ export default function Transactions() {
 
     try {
       await transactionsApi.remove(transaction.id);
-      setTransactions((current) => current.filter((item) => item.id !== transaction.id));
+      loadTransactions(pagination.page);
     } catch (deleteError) {
       setError(getApiErrorMessage(deleteError));
     }
   }
-
-  useEffect(() => {
-    loadTransactions();
-  }, []);
 
   return (
     <section className="page-stack">
@@ -107,7 +134,7 @@ export default function Transactions() {
         <label>
           Type
           <select name="type" value={filters.type} onChange={updateFilter}>
-            <option value="all">Tous</option>
+            <option value="">Tous</option>
             <option value="income">Revenus</option>
             <option value="expense">Depenses</option>
           </select>
@@ -116,7 +143,7 @@ export default function Transactions() {
         <label>
           Categorie
           <select name="categoryId" value={filters.categoryId} onChange={updateFilter}>
-            <option value="all">Toutes</option>
+            <option value="">Toutes</option>
             {categories.map((category) => (
               <option key={category.id} value={category.id}>
                 {category.name}
@@ -148,7 +175,48 @@ export default function Transactions() {
       {isLoading ? (
         <div className="empty-state">Chargement...</div>
       ) : (
-        <TransactionList transactions={filteredTransactions} onDelete={deleteTransaction} />
+        <>
+          <TransactionList transactions={transactions} onDelete={deleteTransaction} />
+          <div className="pagination-bar">
+            <span>
+              {pagination.totalItems} transaction{pagination.totalItems > 1 ? 's' : ''}
+            </span>
+            <label>
+              Par page
+              <select value={pagination.pageSize} onChange={updatePageSize}>
+                <option value="5">5</option>
+                <option value="10">10</option>
+                <option value="20">20</option>
+                <option value="50">50</option>
+              </select>
+            </label>
+            <div className="pagination-actions">
+              <button
+                className="icon-button"
+                type="button"
+                onClick={() => loadTransactions(pagination.page - 1)}
+                disabled={pagination.page <= 1}
+                title="Page precedente"
+                aria-label="Page precedente"
+              >
+                <ChevronLeft size={18} aria-hidden="true" />
+              </button>
+              <strong>
+                {pagination.totalPages === 0 ? 0 : pagination.page} / {pagination.totalPages}
+              </strong>
+              <button
+                className="icon-button"
+                type="button"
+                onClick={() => loadTransactions(pagination.page + 1)}
+                disabled={pagination.page >= pagination.totalPages}
+                title="Page suivante"
+                aria-label="Page suivante"
+              >
+                <ChevronRight size={18} aria-hidden="true" />
+              </button>
+            </div>
+          </div>
+        </>
       )}
     </section>
   );

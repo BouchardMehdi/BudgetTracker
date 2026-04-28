@@ -20,17 +20,75 @@ public class TransactionsController : AuthenticatedControllerBase
     }
 
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<TransactionResponseDto>>> GetTransactions()
+    public async Task<ActionResult<PaginatedResponseDto<TransactionResponseDto>>> GetTransactions(
+        [FromQuery] int page = 1,
+        [FromQuery] int pageSize = 10,
+        [FromQuery] string? search = null,
+        [FromQuery] string? type = null,
+        [FromQuery] int? categoryId = null,
+        [FromQuery] string? month = null)
     {
-        var transactions = await _context.Transactions
+        var safePage = Math.Max(page, 1);
+        var safePageSize = Math.Clamp(pageSize, 1, 100);
+
+        var query = _context.Transactions
             .Include(transaction => transaction.Category)
-            .Where(transaction => transaction.UserId == CurrentUserId)
+            .Where(transaction => transaction.UserId == CurrentUserId);
+
+        var normalizedType = type?.Trim().ToLowerInvariant();
+        if (!string.IsNullOrWhiteSpace(normalizedType))
+        {
+            if (!TransactionTypes.IsValid(normalizedType))
+            {
+                return BadRequest("Type must be either 'income' or 'expense'.");
+            }
+
+            query = query.Where(transaction => transaction.Type == normalizedType);
+        }
+
+        if (categoryId.HasValue)
+        {
+            query = query.Where(transaction => transaction.CategoryId == categoryId.Value);
+        }
+
+        if (!string.IsNullOrWhiteSpace(search))
+        {
+            var normalizedSearch = search.Trim().ToLowerInvariant();
+            query = query.Where(transaction =>
+                transaction.Title.ToLower().Contains(normalizedSearch) ||
+                (transaction.Description != null && transaction.Description.ToLower().Contains(normalizedSearch)));
+        }
+
+        if (!string.IsNullOrWhiteSpace(month))
+        {
+            if (!DateTime.TryParse($"{month}-01", out var monthStart))
+            {
+                return BadRequest("Month must use the YYYY-MM format.");
+            }
+
+            var monthEnd = monthStart.AddMonths(1);
+            query = query.Where(transaction =>
+                transaction.TransactionDate >= monthStart &&
+                transaction.TransactionDate < monthEnd);
+        }
+
+        var totalItems = await query.CountAsync();
+        var transactions = await query
             .OrderByDescending(transaction => transaction.TransactionDate)
             .ThenByDescending(transaction => transaction.Id)
+            .Skip((safePage - 1) * safePageSize)
+            .Take(safePageSize)
             .Select(transaction => ToResponseDto(transaction))
             .ToListAsync();
 
-        return Ok(transactions);
+        return Ok(new PaginatedResponseDto<TransactionResponseDto>
+        {
+            Items = transactions,
+            Page = safePage,
+            PageSize = safePageSize,
+            TotalItems = totalItems,
+            TotalPages = (int)Math.Ceiling(totalItems / (double)safePageSize)
+        });
     }
 
     [HttpGet("{id:int}")]

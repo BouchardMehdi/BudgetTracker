@@ -13,6 +13,7 @@ public class BudgetTrackerDbContext : DbContext
     public DbSet<User> Users => Set<User>();
     public DbSet<Category> Categories => Set<Category>();
     public DbSet<Transaction> Transactions => Set<Transaction>();
+    public DbSet<Budget> Budgets => Set<Budget>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -55,6 +56,11 @@ public class BudgetTrackerDbContext : DbContext
                 .HasForeignKey(transaction => transaction.CategoryId)
                 .OnDelete(DeleteBehavior.Restrict);
 
+            entity.HasOne(category => category.Budget)
+                .WithOne(budget => budget.Category)
+                .HasForeignKey<Budget>(budget => budget.CategoryId)
+                .OnDelete(DeleteBehavior.Cascade);
+
             entity.HasIndex(category => new { category.UserId, category.Name, category.Type }).IsUnique();
         });
 
@@ -89,6 +95,27 @@ public class BudgetTrackerDbContext : DbContext
                 .OnDelete(DeleteBehavior.Restrict);
 
             entity.HasIndex(transaction => transaction.TransactionDate);
+        });
+
+        modelBuilder.Entity<Budget>(entity =>
+        {
+            entity.ToTable("budgets", table =>
+                table.HasCheckConstraint("ck_budgets_amount", "amount > 0"));
+            entity.HasKey(budget => budget.Id);
+
+            entity.Property(budget => budget.Id).HasColumnName("id");
+            entity.Property(budget => budget.Amount).HasColumnName("amount").HasColumnType("decimal(18,2)");
+            entity.Property(budget => budget.CategoryId).HasColumnName("category_id");
+            entity.Property(budget => budget.UserId).HasColumnName("user_id");
+            entity.Property(budget => budget.CreatedAt).HasColumnName("created_at");
+            entity.Property(budget => budget.UpdatedAt).HasColumnName("updated_at");
+
+            entity.HasOne(budget => budget.User)
+                .WithMany(user => user.Budgets)
+                .HasForeignKey(budget => budget.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasIndex(budget => new { budget.UserId, budget.CategoryId }).IsUnique();
         });
     }
 }

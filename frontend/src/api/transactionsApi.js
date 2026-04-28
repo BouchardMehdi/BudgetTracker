@@ -1,8 +1,8 @@
 import axiosClient from './axiosClient';
 
 export const transactionsApi = {
-  getAll: async () => {
-    const response = await axiosClient.get('/transactions');
+  getAll: async (params = {}) => {
+    const response = await axiosClient.get('/transactions', { params });
     return response.data;
   },
   getById: async (id) => {

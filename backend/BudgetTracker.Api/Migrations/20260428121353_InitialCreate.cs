@@ -52,6 +52,36 @@ namespace BudgetTracker.Api.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "budgets",
+                columns: table => new
+                {
+                    id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    amount = table.Column<decimal>(type: "numeric(18,2)", nullable: false),
+                    category_id = table.Column<int>(type: "integer", nullable: false),
+                    user_id = table.Column<int>(type: "integer", nullable: false),
+                    created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    updated_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_budgets", x => x.id);
+                    table.CheckConstraint("ck_budgets_amount", "amount > 0");
+                    table.ForeignKey(
+                        name: "FK_budgets_categories_category_id",
+                        column: x => x.category_id,
+                        principalTable: "categories",
+                        principalColumn: "id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_budgets_users_user_id",
+                        column: x => x.user_id,
+                        principalTable: "users",
+                        principalColumn: "id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "transactions",
                 columns: table => new
                 {
@@ -85,6 +115,18 @@ namespace BudgetTracker.Api.Migrations
                         principalColumn: "id",
                         onDelete: ReferentialAction.Cascade);
                 });
+
+            migrationBuilder.CreateIndex(
+                name: "IX_budgets_category_id",
+                table: "budgets",
+                column: "category_id",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_budgets_user_id_category_id",
+                table: "budgets",
+                columns: new[] { "user_id", "category_id" },
+                unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "IX_categories_user_id_name_type",
@@ -123,6 +165,9 @@ namespace BudgetTracker.Api.Migrations
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.DropTable(
+                name: "budgets");
+
             migrationBuilder.DropTable(
                 name: "transactions");
 

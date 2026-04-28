@@ -9,5 +9,6 @@ public class Category
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
     public User? User { get; set; }
+    public Budget? Budget { get; set; }
     public ICollection<Transaction> Transactions { get; set; } = new List<Transaction>();
 }

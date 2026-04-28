@@ -73,6 +73,11 @@ Endpoints principaux :
 - `POST /api/categories`
 - `PUT /api/categories/{id}`
 - `DELETE /api/categories/{id}`
+- `GET /api/budgets`
+- `POST /api/budgets`
+- `PUT /api/budgets/{id}`
+- `DELETE /api/budgets/{id}`
+- `GET /api/budgets/progress?period=current-month`
 - `GET /api/stats/summary`
 - `GET /api/stats/summary?period=current-month`
 - `GET /api/stats/by-category`

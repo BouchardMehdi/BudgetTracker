@@ -38,3 +38,16 @@ CREATE INDEX IF NOT EXISTS ix_categories_user_id ON categories(user_id);
 CREATE INDEX IF NOT EXISTS ix_transactions_user_id ON transactions(user_id);
 CREATE INDEX IF NOT EXISTS ix_transactions_category_id ON transactions(category_id);
 CREATE INDEX IF NOT EXISTS ix_transactions_transaction_date ON transactions(transaction_date);
+
+CREATE TABLE IF NOT EXISTS budgets (
+    id SERIAL PRIMARY KEY,
+    amount NUMERIC(18, 2) NOT NULL,
+    category_id INTEGER NOT NULL,
+    user_id INTEGER NOT NULL,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    CONSTRAINT ck_budgets_amount CHECK (amount > 0),
+    CONSTRAINT fk_budgets_category FOREIGN KEY (category_id) REFERENCES categories(id) ON DELETE CASCADE,
+    CONSTRAINT fk_budgets_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    CONSTRAINT uq_budgets_user_category UNIQUE (user_id, category_id)
+);

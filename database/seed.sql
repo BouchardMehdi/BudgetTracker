@@ -31,6 +31,7 @@ BEGIN
     WHERE email = 'demo@budgettracker.local';
 
     DELETE FROM transactions WHERE user_id = demo_user_id;
+    DELETE FROM budgets WHERE user_id = demo_user_id;
     DELETE FROM categories WHERE user_id = demo_user_id;
 
     INSERT INTO categories (name, type, user_id, created_at)
@@ -80,6 +81,18 @@ BEGIN
     INSERT INTO categories (name, type, user_id, created_at)
     VALUES ('Vacances', 'expense', demo_user_id, NOW())
     RETURNING id INTO vacances_id;
+
+    INSERT INTO budgets (amount, category_id, user_id, created_at, updated_at)
+    VALUES
+        (400.00, courses_id, demo_user_id, NOW(), NOW()),
+        (920.00, logement_id, demo_user_id, NOW(), NOW()),
+        (120.00, transport_id, demo_user_id, NOW(), NOW()),
+        (140.00, restaurants_id, demo_user_id, NOW(), NOW()),
+        (80.00, loisirs_id, demo_user_id, NOW(), NOW()),
+        (65.00, abonnements_id, demo_user_id, NOW(), NOW()),
+        (90.00, sante_id, demo_user_id, NOW(), NOW()),
+        (150.00, shopping_id, demo_user_id, NOW(), NOW()),
+        (250.00, vacances_id, demo_user_id, NOW(), NOW());
 
     INSERT INTO transactions (title, amount, type, transaction_date, description, category_id, user_id, created_at, updated_at)
     VALUES

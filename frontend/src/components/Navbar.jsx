@@ -1,6 +1,7 @@
 import { BarChart3, ListOrdered, LogIn, LogOut, PlusCircle, Tags } from 'lucide-react';
 import { NavLink } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { currencyOptions, useCurrency } from '../context/CurrencyContext';
 
 const links = [
   { to: '/', label: 'Dashboard', icon: BarChart3 },
@@ -11,6 +12,7 @@ const links = [
 
 export default function Navbar() {
   const { isAuthenticated, user, logout } = useAuth();
+  const { currency, setCurrency } = useCurrency();
 
   return (
     <header className="navbar">
@@ -27,6 +29,18 @@ export default function Navbar() {
                 <span>{label}</span>
               </NavLink>
             ))}
+            <select
+              className="currency-select"
+              value={currency}
+              onChange={(event) => setCurrency(event.target.value)}
+              aria-label="Devise"
+            >
+              {currencyOptions.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
             <span className="user-chip">{user?.username}</span>
             <button className="nav-link nav-button" type="button" onClick={logout}>
               <LogOut size={18} aria-hidden="true" />

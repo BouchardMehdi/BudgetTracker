@@ -1,14 +1,12 @@
 import { Pencil, Trash2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
-
-const currencyFormatter = new Intl.NumberFormat('fr-FR', {
-  style: 'currency',
-  currency: 'EUR',
-});
+import { useCurrency } from '../context/CurrencyContext';
 
 const dateFormatter = new Intl.DateTimeFormat('fr-FR');
 
 export default function TransactionList({ transactions, onDelete }) {
+  const { formatCurrency } = useCurrency();
+
   if (transactions.length === 0) {
     return <div className="empty-state">Aucune transaction.</div>;
   }
@@ -41,7 +39,7 @@ export default function TransactionList({ transactions, onDelete }) {
                 </span>
               </td>
               <td className={`amount ${transaction.type}`}>
-                {currencyFormatter.format(transaction.amount)}
+                {formatCurrency(transaction.amount)}
               </td>
               <td>
                 <div className="row-actions">

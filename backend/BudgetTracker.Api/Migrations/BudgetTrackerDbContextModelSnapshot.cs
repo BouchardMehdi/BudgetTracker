@@ -22,6 +22,49 @@ namespace BudgetTracker.Api.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
+            modelBuilder.Entity("BudgetTracker.Api.Models.Budget", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<decimal>("Amount")
+                        .HasColumnType("decimal(18,2)")
+                        .HasColumnName("amount");
+
+                    b.Property<int>("CategoryId")
+                        .HasColumnType("integer")
+                        .HasColumnName("category_id");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("integer")
+                        .HasColumnName("user_id");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CategoryId")
+                        .IsUnique();
+
+                    b.HasIndex("UserId", "CategoryId")
+                        .IsUnique();
+
+                    b.ToTable("budgets", null, t =>
+                        {
+                            t.HasCheckConstraint("ck_budgets_amount", "amount > 0");
+                        });
+                });
+
             modelBuilder.Entity("BudgetTracker.Api.Models.Category", b =>
                 {
                     b.Property<int>("Id")
@@ -170,6 +213,25 @@ namespace BudgetTracker.Api.Migrations
                     b.ToTable("users", (string)null);
                 });
 
+            modelBuilder.Entity("BudgetTracker.Api.Models.Budget", b =>
+                {
+                    b.HasOne("BudgetTracker.Api.Models.Category", "Category")
+                        .WithOne("Budget")
+                        .HasForeignKey("BudgetTracker.Api.Models.Budget", "CategoryId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("BudgetTracker.Api.Models.User", "User")
+                        .WithMany("Budgets")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Category");
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("BudgetTracker.Api.Models.Category", b =>
                 {
                     b.HasOne("BudgetTracker.Api.Models.User", "User")
@@ -202,11 +264,15 @@ namespace BudgetTracker.Api.Migrations
 
             modelBuilder.Entity("BudgetTracker.Api.Models.Category", b =>
                 {
+                    b.Navigation("Budget");
+
                     b.Navigation("Transactions");
                 });
 
             modelBuilder.Entity("BudgetTracker.Api.Models.User", b =>
                 {
+                    b.Navigation("Budgets");
+
                     b.Navigation("Categories");
 
                     b.Navigation("Transactions");
