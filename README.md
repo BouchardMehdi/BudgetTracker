@@ -108,5 +108,8 @@ Le frontend est disponible sur `http://localhost:5173`.
 - L'authentification JWT est active.
 - Les transactions, categories et statistiques utilisent l'utilisateur connecte.
 - Les transactions peuvent etre recurrentes mensuellement avec une date de debut et une date de fin optionnelle.
+- En developpement, l'API applique les migrations et cree un compte demo si aucun compte demo n'existe.
+- Les suppressions de transactions sont des soft deletes : les lignes restent en base avec `is_deleted = true`.
+- Les erreurs API utilisent un format JSON `{ code, message, details }`.
 - Les types valides sont uniquement `income` et `expense`.
 - Les montants doivent etre strictement superieurs a 0.

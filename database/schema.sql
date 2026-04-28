@@ -30,6 +30,8 @@ CREATE TABLE IF NOT EXISTS transactions (
     recurrence_start_date DATE,
     recurrence_end_date DATE,
     recurring_parent_id INTEGER,
+    is_deleted BOOLEAN NOT NULL DEFAULT FALSE,
+    deleted_at TIMESTAMPTZ,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     CONSTRAINT ck_transactions_amount CHECK (amount > 0),

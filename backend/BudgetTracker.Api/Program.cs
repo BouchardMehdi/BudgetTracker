@@ -1,6 +1,7 @@
 using BudgetTracker.Api.Data;
 using BudgetTracker.Api.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
@@ -9,6 +10,24 @@ using System.Text;
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
+builder.Services.Configure<ApiBehaviorOptions>(options =>
+{
+    options.InvalidModelStateResponseFactory = context =>
+    {
+        var details = context.ModelState
+            .Where(item => item.Value?.Errors.Count > 0)
+            .ToDictionary(
+                item => item.Key,
+                item => item.Value!.Errors.Select(error => error.ErrorMessage).ToArray());
+
+        return new BadRequestObjectResult(new BudgetTracker.Api.DTOs.ApiErrorDto
+        {
+            Code = "validation_error",
+            Message = "One or more validation errors occurred.",
+            Details = details
+        });
+    };
+});
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(options =>
 {
@@ -62,7 +81,13 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 builder.Services.AddAuthorization();
 builder.Services.AddScoped<PasswordHasher>();
 builder.Services.AddScoped<JwtTokenService>();
+builder.Services.AddScoped<AuthService>();
 builder.Services.AddScoped<RecurringTransactionService>();
+builder.Services.AddScoped<TransactionService>();
+builder.Services.AddScoped<CategoryService>();
+builder.Services.AddScoped<BudgetService>();
+builder.Services.AddScoped<StatsService>();
+builder.Services.AddScoped<DevelopmentDataSeeder>();
 
 builder.Services.AddCors(options =>
 {
@@ -81,6 +106,10 @@ var app = builder.Build();
 
 if (app.Environment.IsDevelopment())
 {
+    using var scope = app.Services.CreateScope();
+    var seeder = scope.ServiceProvider.GetRequiredService<DevelopmentDataSeeder>();
+    await seeder.SeedAsync();
+
     app.UseSwagger();
     app.UseSwaggerUI();
 }

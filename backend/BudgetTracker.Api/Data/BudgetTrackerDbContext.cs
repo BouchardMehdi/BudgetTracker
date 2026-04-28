@@ -85,6 +85,8 @@ public class BudgetTrackerDbContext : DbContext
             entity.Property(transaction => transaction.RecurrenceStartDate).HasColumnName("recurrence_start_date").HasColumnType("date");
             entity.Property(transaction => transaction.RecurrenceEndDate).HasColumnName("recurrence_end_date").HasColumnType("date");
             entity.Property(transaction => transaction.RecurringParentId).HasColumnName("recurring_parent_id");
+            entity.Property(transaction => transaction.IsDeleted).HasColumnName("is_deleted");
+            entity.Property(transaction => transaction.DeletedAt).HasColumnName("deleted_at");
             entity.Property(transaction => transaction.CreatedAt).HasColumnName("created_at");
             entity.Property(transaction => transaction.UpdatedAt).HasColumnName("updated_at");
 
@@ -105,6 +107,7 @@ public class BudgetTrackerDbContext : DbContext
 
             entity.HasIndex(transaction => transaction.TransactionDate);
             entity.HasIndex(transaction => new { transaction.RecurringParentId, transaction.TransactionDate }).IsUnique();
+            entity.HasQueryFilter(transaction => !transaction.IsDeleted);
         });
 
         modelBuilder.Entity<Budget>(entity =>

@@ -9,8 +9,16 @@ export function getApiErrorMessage(error) {
     return data;
   }
 
+  if (data?.message) {
+    return data.message;
+  }
+
   if (data?.errors) {
     return Object.values(data.errors).flat().join(' ');
+  }
+
+  if (data?.details) {
+    return Object.values(data.details).flat().join(' ');
   }
 
   if (data?.title) {

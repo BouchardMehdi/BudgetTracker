@@ -7,6 +7,17 @@ public static class TransactionTypes
 
     public static bool IsValid(string? type)
     {
-        return type is Income or Expense;
+        return Normalize(type) is Income or Expense;
+    }
+
+    public static string Normalize(string? type)
+    {
+        return type?.Trim().ToLowerInvariant() ?? string.Empty;
+    }
+
+    public static bool TryNormalize(string? type, out string normalizedType)
+    {
+        normalizedType = Normalize(type);
+        return IsValid(normalizedType);
     }
 }
