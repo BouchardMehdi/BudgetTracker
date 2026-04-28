@@ -6,6 +6,10 @@ export function getApiErrorMessage(error) {
   const data = error.response.data;
 
   if (typeof data === 'string') {
+    if (data.trim().startsWith('<')) {
+      return `L'API a renvoye une erreur ${error.response.status}. Verifie le routage Docker/Nginx ou les logs du backend.`;
+    }
+
     return data;
   }
 

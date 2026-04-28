@@ -27,7 +27,7 @@ export default function TransactionList({ transactions, onDelete }) {
         <tbody>
           {transactions.map((transaction) => (
             <tr key={transaction.id}>
-              <td>
+              <td data-label="Titre">
                 <strong>{transaction.title}</strong>
                 {transaction.description && <span>{transaction.description}</span>}
                 {(transaction.isRecurring || transaction.recurringParentId) && (
@@ -36,17 +36,17 @@ export default function TransactionList({ transactions, onDelete }) {
                   </span>
                 )}
               </td>
-              <td>{transaction.categoryName}</td>
-              <td>{dateFormatter.format(new Date(transaction.transactionDate))}</td>
-              <td>
+              <td data-label="Categorie">{transaction.categoryName}</td>
+              <td data-label="Date">{dateFormatter.format(new Date(transaction.transactionDate))}</td>
+              <td data-label="Type">
                 <span className={`pill ${transaction.type}`}>
                   {transaction.type === 'income' ? 'Revenu' : 'Depense'}
                 </span>
               </td>
-              <td className={`amount ${transaction.type}`}>
+              <td data-label="Montant" className={`amount ${transaction.type}`}>
                 {formatCurrency(transaction.amount)}
               </td>
-              <td>
+              <td data-label="Actions">
                 <div className="row-actions">
                   <Link
                     className="icon-button"

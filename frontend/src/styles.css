@@ -23,6 +23,7 @@
 body {
   margin: 0;
   min-width: 320px;
+  overflow-x: hidden;
 }
 
 button,
@@ -68,6 +69,7 @@ a {
   gap: 10px;
   font-weight: 800;
   font-size: 1.05rem;
+  min-width: 0;
 }
 
 .brand-mark {
@@ -491,6 +493,7 @@ h2 {
   color: #ffffff;
   font-weight: 800;
   cursor: pointer;
+  text-align: center;
 }
 
 .secondary-button {
@@ -506,6 +509,7 @@ h2 {
   color: #344054;
   font-weight: 800;
   cursor: pointer;
+  text-align: center;
 }
 
 .secondary-button:hover {
@@ -745,6 +749,7 @@ textarea {
   padding: 16px;
   color: var(--muted);
   font-weight: 650;
+  overflow-wrap: anywhere;
 }
 
 .alert.error {
@@ -759,6 +764,21 @@ textarea {
   background: var(--income-soft);
 }
 
+@media (max-width: 900px) {
+  .stats-grid,
+  .dashboard-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .filters-panel {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .filters-panel .secondary-button {
+    grid-column: 1 / -1;
+  }
+}
+
 @media (max-width: 760px) {
   .navbar,
   .page-header {
@@ -766,16 +786,31 @@ textarea {
     flex-direction: column;
   }
 
+  .navbar {
+    gap: 14px;
+  }
+
+  .brand span:last-child {
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
   .nav-links {
     width: 100%;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .nav-link {
-    flex: 1 1 140px;
+    width: 100%;
+    min-width: 0;
   }
 
-  .stats-grid,
-  .dashboard-grid,
+  .user-chip,
+  .currency-select {
+    width: 100%;
+  }
+
   .form-grid,
   .filters-panel,
   .budget-form,
@@ -790,6 +825,7 @@ textarea {
   }
 
   .main-content {
+    width: min(100% - 24px, 1120px);
     padding-top: 26px;
   }
 
@@ -807,5 +843,146 @@ textarea {
 
   .dashboard-title {
     flex-direction: column;
+  }
+
+  .auth-page {
+    min-height: auto;
+    place-items: start center;
+  }
+
+  .auth-panel,
+  .form-panel,
+  .section-block {
+    padding: 18px;
+  }
+
+  .page-header .primary-button,
+  .form-panel .primary-button,
+  .inline-form .primary-button,
+  .budget-form .primary-button {
+    width: 100%;
+  }
+
+  .table-wrap {
+    overflow: visible;
+    background: transparent;
+    border: 0;
+    box-shadow: none;
+  }
+
+  .transactions-table {
+    min-width: 0;
+  }
+
+  .transactions-table,
+  .transactions-table thead,
+  .transactions-table tbody,
+  .transactions-table tr,
+  .transactions-table th,
+  .transactions-table td {
+    display: block;
+  }
+
+  .transactions-table thead {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+  }
+
+  .transactions-table tbody {
+    display: grid;
+    gap: 12px;
+  }
+
+  .transactions-table tr {
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: #ffffff;
+    box-shadow: 0 10px 24px rgba(17, 24, 39, 0.05);
+  }
+
+  .transactions-table td,
+  .transactions-table td:first-child {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 14px;
+    padding: 12px 14px;
+    border-bottom: 1px solid var(--border);
+    text-align: right;
+  }
+
+  .transactions-table td:first-child {
+    display: grid;
+    justify-content: stretch;
+    text-align: left;
+  }
+
+  .transactions-table td::before {
+    content: attr(data-label);
+    flex: 0 0 auto;
+    color: var(--muted);
+    font-size: 0.78rem;
+    font-weight: 850;
+    text-transform: uppercase;
+  }
+
+  .transactions-table td:first-child::before {
+    margin-bottom: 2px;
+  }
+
+  .transactions-table td:last-child {
+    border-bottom: 0;
+  }
+
+  .transactions-table td:last-child::before {
+    align-self: center;
+  }
+
+  .row-actions {
+    justify-content: flex-end;
+  }
+}
+
+@media (max-width: 480px) {
+  .navbar {
+    padding: 14px 12px;
+  }
+
+  .nav-links {
+    grid-template-columns: 1fr;
+  }
+
+  .auth-panel,
+  .form-panel,
+  .section-block,
+  .stat-card {
+    padding: 16px;
+  }
+
+  .category-card,
+  .category-stat-row,
+  .period-row,
+  .latest-row,
+  .balance-strip,
+  .category-bar-heading {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  h1 {
+    font-size: 1.75rem;
+  }
+
+  .stat-card strong,
+  .compare-item strong {
+    font-size: 1.45rem;
+  }
+
+  .pagination-actions {
+    width: 100%;
+    justify-content: space-between;
   }
 }
