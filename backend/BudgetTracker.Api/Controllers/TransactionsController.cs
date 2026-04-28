@@ -1,16 +1,17 @@
 using BudgetTracker.Api.Data;
 using BudgetTracker.Api.DTOs;
 using BudgetTracker.Api.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
 namespace BudgetTracker.Api.Controllers;
 
 [ApiController]
+[Authorize]
 [Route("api/[controller]")]
-public class TransactionsController : ControllerBase
+public class TransactionsController : AuthenticatedControllerBase
 {
-    private const int CurrentUserId = 1;
     private readonly BudgetTrackerDbContext _context;
 
     public TransactionsController(BudgetTrackerDbContext context)

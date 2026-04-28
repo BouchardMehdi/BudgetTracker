@@ -1,6 +1,6 @@
 # BudgetTracker
 
-BudgetTracker est un MVP de gestion de depenses personnelles avec un backend ASP.NET Core Web API, PostgreSQL, Entity Framework Core et un frontend React avec Vite.
+BudgetTracker est un MVP de gestion de depenses personnelles avec un backend ASP.NET Core Web API, PostgreSQL, Entity Framework Core, JWT et un frontend React avec Vite.
 
 ## Structure
 
@@ -18,15 +18,27 @@ database                    Scripts SQL PostgreSQL
 
 ## Base de donnees
 
-Depuis un terminal PostgreSQL avec un utilisateur autorise :
+Creer la base si elle n'existe pas encore :
 
 ```bash
 psql -U postgres -f database/create_database.sql
-psql -U postgres -d budgettracker -f database/schema.sql
-psql -U postgres -d budgettracker -f database/seed.sql
 ```
 
-La premiere version utilise `user_id = 1` par defaut. Le fichier `database/seed.sql` cree cet utilisateur et quelques donnees de test.
+Appliquer le schema avec EF Core :
+
+```bash
+cd backend/BudgetTracker.Api
+dotnet tool restore
+dotnet ef database update
+```
+
+Si ta base contient deja les tables creees manuellement avec `database/schema.sql`, le plus simple en developpement est de repartir d'une base vide avant `dotnet ef database update`.
+
+Les scripts `database/schema.sql` et `database/seed.sql` restent disponibles si tu veux initialiser la base manuellement. Le compte de test du seed SQL est :
+
+```text
+demo / Password123!
+```
 
 ## Backend
 
@@ -41,6 +53,8 @@ Lancer l'API :
 ```bash
 cd backend/BudgetTracker.Api
 dotnet restore
+dotnet tool restore
+dotnet ef database update
 dotnet run
 ```
 
@@ -48,6 +62,8 @@ Par defaut, l'API est disponible sur `http://localhost:5000` et Swagger sur `htt
 
 Endpoints principaux :
 
+- `POST /api/auth/register`
+- `POST /api/auth/login`
 - `GET /api/transactions`
 - `GET /api/transactions/{id}`
 - `POST /api/transactions`
@@ -81,7 +97,7 @@ Le frontend est disponible sur `http://localhost:5173`.
 
 ## Notes MVP
 
-- Pas d'authentification JWT dans cette version.
-- La table `users` est deja prevue pour une future authentification.
+- L'authentification JWT est active.
+- Les transactions, categories et statistiques utilisent l'utilisateur connecte.
 - Les types valides sont uniquement `income` et `expense`.
 - Les montants doivent etre strictement superieurs a 0.

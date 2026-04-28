@@ -92,15 +92,35 @@ a {
   min-height: 40px;
   gap: 8px;
   padding: 8px 12px;
+  border: 0;
   border-radius: 8px;
+  background: transparent;
   color: var(--muted);
   font-weight: 650;
+  cursor: pointer;
 }
 
 .nav-link.active,
 .nav-link:hover {
   background: #eef4f8;
   color: var(--primary-dark);
+}
+
+.nav-button {
+  appearance: none;
+}
+
+.user-chip {
+  display: inline-flex;
+  align-items: center;
+  min-height: 36px;
+  padding: 7px 10px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: #ffffff;
+  color: #344054;
+  font-size: 0.9rem;
+  font-weight: 800;
 }
 
 .main-content {
@@ -270,6 +290,34 @@ h2 {
 
 .form-panel {
   padding: 24px;
+}
+
+.auth-page {
+  min-height: calc(100vh - 146px);
+  display: grid;
+  place-items: center;
+}
+
+.auth-panel {
+  width: min(430px, 100%);
+  display: grid;
+  gap: 18px;
+  padding: 28px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+  box-shadow: 0 14px 30px rgba(17, 24, 39, 0.06);
+}
+
+.auth-switch {
+  margin: 0;
+  color: var(--muted);
+  text-align: center;
+}
+
+.auth-switch a {
+  color: var(--primary-dark);
+  font-weight: 850;
 }
 
 .form-grid {

@@ -1,5 +1,5 @@
 INSERT INTO users (id, username, email, password_hash, created_at)
-VALUES (1, 'demo', 'demo@budgettracker.local', 'not_used_in_mvp', NOW())
+VALUES (1, 'demo', 'demo@budgettracker.local', 'pbkdf2_sha256$100000$pR7h+kkgz4HywbXPP5z+FA==$LRFszK/W7tX+xtjY20C3BMS0cVEkSVquqeM8M322c3g=', NOW())
 ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO categories (id, name, type, user_id, created_at)

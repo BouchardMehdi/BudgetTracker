@@ -35,7 +35,8 @@ public class BudgetTrackerDbContext : DbContext
 
         modelBuilder.Entity<Category>(entity =>
         {
-            entity.ToTable("categories");
+            entity.ToTable("categories", table =>
+                table.HasCheckConstraint("ck_categories_type", "type IN ('income', 'expense')"));
             entity.HasKey(category => category.Id);
 
             entity.Property(category => category.Id).HasColumnName("id");
@@ -59,7 +60,11 @@ public class BudgetTrackerDbContext : DbContext
 
         modelBuilder.Entity<Transaction>(entity =>
         {
-            entity.ToTable("transactions");
+            entity.ToTable("transactions", table =>
+            {
+                table.HasCheckConstraint("ck_transactions_amount", "amount > 0");
+                table.HasCheckConstraint("ck_transactions_type", "type IN ('income', 'expense')");
+            });
             entity.HasKey(transaction => transaction.Id);
 
             entity.Property(transaction => transaction.Id).HasColumnName("id");
@@ -82,6 +87,8 @@ public class BudgetTrackerDbContext : DbContext
                 .WithMany(category => category.Transactions)
                 .HasForeignKey(transaction => transaction.CategoryId)
                 .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasIndex(transaction => transaction.TransactionDate);
         });
     }
 }
