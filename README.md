@@ -74,7 +74,10 @@ Endpoints principaux :
 - `PUT /api/categories/{id}`
 - `DELETE /api/categories/{id}`
 - `GET /api/stats/summary`
+- `GET /api/stats/summary?period=current-month`
 - `GET /api/stats/by-category`
+- `GET /api/stats/by-category?period=current-month&type=expense`
+- `GET /api/stats/latest-transactions?limit=5`
 
 ## Frontend
 
